@@ -5,12 +5,12 @@ from .models import Match, Team
 class MatchListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
-        fields = ('team_1', 'team_2', 'team_1_score', 'team_2_score', 'match_date', 'match_set')
+        fields = ('team_1_name', 'team_2_name', 'team_1_score', 'team_2_score', 'match_date', 'match_set')
 
 class TeamListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
-        fields = ('name', 'logo_url', 'rank', 'win', 'defeat', 'v_point', 'info')
+        fields = ('name', 'rank', 'win', 'defeat', 'v_point', 'info')
 
 class MatchListView(generics.ListAPIView):
     queryset = Match.objects.all()
