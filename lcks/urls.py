@@ -16,10 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api.views import MatchListView, TeamListView
+from accounts.views import login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/match/', MatchListView.as_view(), name='match'),
     path('api/team/', TeamListView.as_view(), name='team'),
+    path('accounts/login/', login)
 
 ]
