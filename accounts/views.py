@@ -5,6 +5,7 @@ from .models import Account
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 
+
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
@@ -16,16 +17,20 @@ def login(request):
         data = JSONParser().parse(request)
         search_email = data['email']
         obj = NULL
+
+        if search_email == '' or data['password'] == '':
+            return HttpResponse(status=400)
+
         try:
             obj = Account.objects.get(email=search_email)
         except Account.DoesNotExist:
-            return HttpResponse(status=400)
+            return JsonResponse({'status':'false','message':'EmailDoesNotExist'}, status=400)
 
         if data['password'] == obj.password:
             serializer = AccountSerializer(obj)
             return JsonResponse(serializer.data, safe=False)
         else:
-            return HttpResponse(status=400)
+            return JsonResponse({'status':'false','message':'PassWordIsIncorrect'}, status=400)
 
     return HttpResponse(status=400)
 
@@ -35,11 +40,15 @@ def register(request):
         data = JSONParser().parse(request)
         search_email = data['email']
         obj = NULL
+
+        if search_email == '' or data['password'] == '' or data['re_password'] == '' or data['name'] == '':
+                    return HttpResponse(status=400)
+
         try:
             obj = Account.objects.get(email=search_email)
         except Account.DoesNotExist:
             if data['password'] != data['re_password']:
-                return HttpResponse(status=400)
+                return JsonResponse({'status':'false','message':'PasswordIsNotSame'}, status=400)
 
             Account.objects.create(
                 email = data['email'],
@@ -51,6 +60,6 @@ def register(request):
             serializer = AccountSerializer(obj)
             return JsonResponse(serializer.data, safe=False)
 
-        return HttpResponse(status=400)
+        return JsonResponse({'status':'false','message':'EmailAlreadyExist'}, status=400)
 
     return HttpResponse(status=400)
