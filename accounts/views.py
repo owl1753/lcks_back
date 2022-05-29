@@ -15,51 +15,70 @@ class AccountSerializer(serializers.ModelSerializer):
 def login(request):
     if request.method == 'POST':
         data = JSONParser().parse(request)
-        search_email = data['email']
         obj = NULL
+        error = {'email':'', 'password':''}
 
-        if search_email == '' or data['password'] == '':
-            return HttpResponse(status=400)
+        if data['email'] == '' or data['password'] == '':
+            return JsonResponse(error, status=400)
 
         try:
-            obj = Account.objects.get(email=search_email)
+            obj = Account.objects.get(email=data['email'])
         except Account.DoesNotExist:
-            return JsonResponse({'status':'false','message':'EmailDoesNotExist'}, status=400)
+            error['email'] = '해당 이메일로 가입한 계정이 없습니다.'
+            return JsonResponse(error, status=400)
 
         if data['password'] == obj.password:
             serializer = AccountSerializer(obj)
             return JsonResponse(serializer.data, safe=False)
         else:
-            return JsonResponse({'status':'false','message':'PassWordIsIncorrect'}, status=400)
+            error['password'] = '비밀번호가 틀렸습니다.'
+            return JsonResponse(error, status=400)
 
-    return HttpResponse(status=400)
+    return JsonResponse(error, status=400)
 
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
         data = JSONParser().parse(request)
-        search_email = data['email']
         obj = NULL
+        error = {'email':'', 'name':'', 'password':'', 're_password':''}
+        is_error = False
 
-        if search_email == '' or data['password'] == '' or data['re_password'] == '' or data['name'] == '':
-                    return HttpResponse(status=400)
+        if data['password'] == '':
+            error['password'] = '필수 입력 항목입니다.'
+            is_error = True
 
-        try:
-            obj = Account.objects.get(email=search_email)
-        except Account.DoesNotExist:
-            if data['password'] != data['re_password']:
-                return JsonResponse({'status':'false','message':'PasswordIsNotSame'}, status=400)
+        if data['re_password'] == '':
+            error['re_password'] = '필수 입력 항목입니다.'
+            is_error = True
 
-            Account.objects.create(
-                email = data['email'],
-                name = data['name'],
-                password = data['password']
-            )
+        if data['name'] == '':
+            error['name'] = '필수 입력 항목입니다.'
+            is_error = True
 
-            obj = Account.objects.get(email=search_email)
-            serializer = AccountSerializer(obj)
-            return JsonResponse(serializer.data, safe=False)
+        if data['password'] != data['re_password'] and data['password'] != '' and data['re_password'] != '':
+            error['re_password'] = '위의 비밀번호와 같지 않습니다.'
+            is_error = True
 
-        return JsonResponse({'status':'false','message':'EmailAlreadyExist'}, status=400)
+        if data['email'] == '':
+            error['email'] = '필수 입력 항목입니다.'
+            is_error = True
+        else:
+            try:
+                obj = Account.objects.get(email=data['email'])
+                error['email'] = '이미 가입된 이메일 입니다.'
+                is_error = True
+            except Account.DoesNotExist:
+                if is_error == False:
+                    Account.objects.create(
+                        email = data['email'],
+                        name = data['name'],
+                        password = data['password']
+                    )
+                    obj = Account.objects.get(email=data['email'])
+                    serializer = AccountSerializer(obj)
+                    return JsonResponse(serializer.data, safe=False)
+
+        return JsonResponse(error, status=400)
 
     return HttpResponse(status=400)
