@@ -1,6 +1,10 @@
 from rest_framework import generics, serializers
+from django.http import HttpResponse
 from rest_framework.response import Response
 from .models import Match, Team, Comment
+from accounts.models import Account
+from rest_framework.parsers import JSONParser
+from django.views.decorators.csrf import csrf_exempt
 
 class MatchListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,3 +71,21 @@ class CommentListView(generics.ListAPIView):
             return self.get_paginated_response(serializer.data)
 
         return Response(serializer.data)
+
+@csrf_exempt
+def AddComment(request):
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        author = Account.objects.get(email=data['author_email'])
+        team = Team.objects.get(name=data['team_name'])
+        contents = data['contents']
+        
+        Comment.objects.create(
+            author=author,
+            team=team,
+            contents=contents
+        )
+
+        return HttpResponse(status=200)
+
+    return HttpResponse(status=400)

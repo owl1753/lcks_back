@@ -14,8 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from api.views import MatchListView, TeamListView, CommentListView
+from django.urls import path
+from api.views import MatchListView, TeamListView, CommentListView, AddComment
 from accounts.views import login, register
 
 urlpatterns = [
@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/match/', MatchListView.as_view(), name='match'),
     path('api/team/', TeamListView.as_view(), name='team'),
     path('api/comment/', CommentListView.as_view(), name='comment'),
+    path('api/addComment/', AddComment, name='addComment'),
     path('accounts/login/', login),
     path('accounts/register/', register)
 
